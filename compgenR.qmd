@@ -24,3 +24,114 @@ You can add options to executable code like this
 ```
 
 The `echo: false` option disables the printing of code (only output is displayed).
+
+# Computational Genomics with R
+
+This is my walkthrough of the book computational genomics with R by Altuna Alkalin, which can be found [here](https://compgenomr.github.io/book/).
+
+### Compute resources
+
+I'm starting out with the initial allocation from Posit.
+
+1GB Ram, 1 CPU
+
+We'll see if I need to / can bump that up if needed.
+
+### Installations
+
+First install all of the packages. Code copied from the preface of the book. Let's hope it works. That's a lot of packages.
+
+```{r eval=FALSE, include=FALSE}
+
+if (!requireNamespace("BiocManager", quietly = TRUE))
+    install.packages("BiocManager")
+
+BiocManager::install(c('qvalue','plot3D','ggplot2','pheatmap','cowplot',
+                      'cluster', 'NbClust', 'fastICA', 'NMF','matrixStats',
+                      'Rtsne', 'mosaic', 'knitr', 'genomation',
+                      'ggbio', 'Gviz', 'DESeq2', 'RUVSeq',
+                      'gProfileR', 'ggfortify', 'corrplot',
+                      'gage', 'EDASeq', 'citr', 'formatR',
+                      'svglite', 'Rqc', 'ShortRead', 'QuasR',
+                      'methylKit','FactoMineR', 'iClusterPlus',
+                      'enrichR','caret','xgboost','glmnet',
+                      'DALEX','kernlab','pROC','nnet','RANN',
+                      'ranger','GenomeInfoDb', 'GenomicRanges',
+                      'GenomicAlignments', 'ComplexHeatmap', 'circlize', 
+                      'rtracklayer', 'BSgenome.Hsapiens.UCSC.hg38',
+                      'BSgenome.Hsapiens.UCSC.hg19','tidyr',
+                      'AnnotationHub', 'GenomicFeatures', 'normr',
+                      'MotifDb', 'TFBSTools', 'rGADEM', 'JASPAR2018'
+                     ))
+```
+
+We also need the package that comes with the book. This contains data files needed for the analyses in the book. Files in the package are accessed using the system.file() function.
+
+```{r  eval=FALSE, include=FALSE}
+
+#First need to install devtools package
+
+install.packages("devtools")
+
+```
+
+Now load the devtools package
+
+```{r  eval=FALSE, include=FALSE}
+library(devtools)
+```
+
+Now try installing the compgenomRpackage
+
+```{r  eval=FALSE, include=FALSE}
+
+devtools::install_github("compgenomr/compGenomRData")
+```
+
+Seems to have worked so far
+
+Let's try reading in some files from the package.
+
+```{r}
+
+enhancerFilePath=system.file("extdata",
+                "subset.enhancers.hg18.bed",
+                package="compGenomRData")
+cpgiFilePath=system.file("extdata",
+                "subset.cpgi.hg18.bed",
+                package="compGenomRData")
+# read enhancer marker BED file
+enh.df <- read.table(enhancerFilePath, header = FALSE) 
+
+# read CpG island BED file
+cpgi.df <- read.table(cpgiFilePath, header = FALSE) 
+
+# check first lines to see how the data looks like
+head(enh.df)
+
+```
+
+Nice!
+
+Other ways to read in files is shown in the code below. The code is commented out so that is doesn't run.
+
+```{r}
+#library(data.table)
+#df.f=d(enhancerFilePath, header = FALSE,data.table=FALSE)
+
+#library(readr)
+#df.f2=read_table(enhancerFilePath, col_names = FALSE)
+
+```
+
+Chapters 2 and 3 go over some basic R functionality. I'm skipping that here and jumping to chapter 4 because that starts analyzing the genomic data. I will return to chs 2 and 3 in a separate document.
+
+## **Chapter 4** Exploratory Data Analysis with Unsupervised Machine Learning
+
+### 4.1 Clustering
+
+They use a simple table for the following illustration. I reproduced that as simple_patient_data and uploaded that file. Now let's read that into R as a dataframe called pd for patient data.
+
+```{r}
+
+```
