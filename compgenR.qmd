@@ -133,5 +133,51 @@ Chapters 2 and 3 go over some basic R functionality. I'm skipping that here and 
 They use a simple table for the following illustration. I reproduced that as simple_patient_data and uploaded that file. Now let's read that into R as a dataframe called pd for patient data.
 
 ```{r}
+# Installing
+install.packages("readr")
+# Loading
+library("readr")
+```
 
+```{r}
+
+#load the readxl library and import the dtaset
+
+
+
+pd <- read.csv("simple_patient_data.csv", header =TRUE, row.names	= 1)
+
+
+
+
+View(pd)
+
+
+
+```
+
+Now let's see how we can calculate distances between the patients in R. We will use three distance methods.
+
+-   the **"Manhattan distance"** or **"L1 norm"**.
+
+-   **"Euclidean Distance"** or **"L2 norm"**
+
+-   the **"correlation distance"**
+
+```{r}
+#first the manhattan method of the dist function.
+
+dist(pd,method="manhattan")
+```
+
+Now try the Euclidean method
+
+```{r}
+dist(pd,method="euclidean")
+```
+
+Now the third method. correlation
+
+```{r}
+as.dist(1-cor(t(pd))) # correlation distance
 ```
