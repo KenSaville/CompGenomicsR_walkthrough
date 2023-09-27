@@ -561,5 +561,28 @@ Ks
 ```
 
 ```{r}
-Ks %>% ggplot() + geom_point
+#let's make a dataframe, actually, let's make it a tibble
+K_dist <- tibble(k=2:7, avg.mean=Ks)
+
+#now plot w ggplot
+
+K_dist %>% ggplot(aes(x=k, y=avg.mean)) + 
+  geom_point(col="red") 
+```
+
+According to the CompGenomR text:
+
+In this case, it seems the best value for k is 4. The k-medoids function pam() will usually cluster CML and "no Leukemia" cases together when k=4, which are also related clusters according to the hierarchical clustering we did earlier.
+
+Why?
+
+I'm thinking it's because the avg.mean is the avg mean between clusters. We want that to be high as it maximizes the distance between the clusters.
+
+Let's retry this all with k=4
+
+```{r}
+kmclu4=cluster::pam(t(mat),k=4)
+
+fviz_cluster(kmclu4, t(mat), geom = "point")
+
 ```
