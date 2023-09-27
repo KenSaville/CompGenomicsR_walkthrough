@@ -586,3 +586,35 @@ kmclu4=cluster::pam(t(mat),k=4)
 fviz_cluster(kmclu4, t(mat), geom = "point")
 
 ```
+
+### **4.2.1** Principal component analysis
+
+Principal component analysis (PCA) is maybe the most popular technique to examine high-dimensional data. There are multiple interpretations of how PCA reduces dimensionality. We will first focus on geometrical interpretation, where this operation can be interpreted as rotating the original dimensions of the data. For this, we go back to our example gene expression data set. In this example, we will represent our patients with expression profiles of just two genes, CD33 (ENSG00000105383) and PYGL (ENSG00000100504). This way we can visualize them in a scatter plot.
+
+```{r}
+#first using base R
+plot(mat[rownames(mat)=="ENSG00000100504",],
+     mat[rownames(mat)=="ENSG00000105383",],pch=19,
+     ylab="CD33 (ENSG00000105383)",
+     xlab="PYGL (ENSG00000100504)")
+```
+
+```{r}
+#and now ggplot
+
+#mat2 <- as_tibble(mat, rownames = pkgconfig::get_config("tibble::rownames", NA))
+
+# I think I need to convert mat to long format first.  Using gather
+
+#I think the tranposed matrix might work.  Then we can just use patient designation as the columns to use for the plot
+
+#mat_tibl <- as_tibble(t(mat))
+
+#View(mat_tibl)
+
+
+mat_tibl %>% ggplot(aes(x=ENSG00000100504, y= ENSG00000105383)) +
+  geom_point(col="red") +
+  labs(x="PYGL (ENSG00000100504)", y="CD33 (ENSG00000105383)")+
+  theme_bw()
+```
