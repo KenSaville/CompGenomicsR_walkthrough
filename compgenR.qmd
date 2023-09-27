@@ -65,6 +65,19 @@ BiocManager::install(c('qvalue','plot3D','ggplot2','pheatmap','cowplot',
                      ))
 ```
 
+Also install the tidyverse
+
+```{r}
+
+install.packages("tidyverse")
+```
+
+```{r}
+
+library(tidyverse)
+
+```
+
 We also need the package that comes with the book. This contains data files needed for the analyses in the book. Files in the package are accessed using the system.file() function.
 
 ```{r  eval=FALSE, include=FALSE}
@@ -321,7 +334,7 @@ pheatmap(mat,show_rownames=FALSE,show_colnames=FALSE,  #provide the data
 
 ```
 
-WHat is the following code doing?
+What is the above code doing?
 
 data.frame(LeukemiaType =substr(colnames(mat),1,3)) rownames(annotation_col)=colnames(mat)
 
@@ -336,3 +349,217 @@ rownames(annotation_col)=colnames(mat)
 Changes the rownames of the annotation_col to the full column names of mat. So we get a dat frame with fullnames as rownames and abbreviations as column 1. With the column name Leukemia type.
 
 Then in the pheatmap function, there is a parameter in this function called annotation_col. Which means, tell me what you want to use for annotation (the legend essentially). In this case we made a dataframe called annotation_col, and so we use this as the legend.
+
+### **4.1.3** K-means clustering
+
+```{r}
+
+set.seed(101)
+
+# we have to transpose the matrix t()
+# so that we calculate distances between patients
+
+kclu=kmeans(t(mat),centers=5)  
+
+# number of data points in each cluster
+table(kclu$cluster)
+
+```
+
+so t(mat) tranposes the matrix - switching rows and columns. Then the kmeans function is run on this, using 5 centers.
+
+Table is a function that makes a table of a data frame or in this case a column. Counting up each different thing in a column and presenting the values in a table. In this case each patient was assigned to a cluseter (1 through 5). Then the numbers of patients in each cluster were counted and put in a table.
+
+Let's walk through this a bit. If you view t(mat) you can see that the data frame now has the 60 patients as rownames and 1000 genes as columns. The data in each column are the expression levels of each gene.
+
+```{r eval=FALSE, include=FALSE}
+
+View(t(mat))
+
+```
+
+Running the kmeans function on this dataframe sorts patients into 5 clusters (because we told it to use 5 centers). We need to use set seed to control the randomness of the kmeans function
+
+```{r}
+set.seed(101)
+kclu=kmeans(t(mat),centers=5)  
+```
+
+let's see the table generated this time. This is a table of the cluster column of the kclu object created by kmeans.
+
+```{r}
+table(kclu$cluster) #Note - the numbers in the table add up to 60, for 60 patients.
+```
+
+Next, we create a new dataframe with a column called LeukemiaType, created again by using substr to extract the first 3 letters of the column names (patients) from the original mat dataframe. This column will look like this
+
+```{r}
+substr(colnames(mat),1,3)
+```
+
+The second column is called cluster and contains the cluster assigned for each patient. This column looks like this
+
+```{r}
+kclu$cluster
+
+```
+
+Combining these columns into a dataframe using the data.frame function looks like this
+
+```{r}
+
+type2kclu = data.frame(
+                    LeukemiaType =substr(colnames(mat),1,3),
+                    cluster=kclu$cluster)
+
+type2kclu
+
+
+```
+
+Making a table of this new dataframe shows how many patients in each cluster and associates each cluster with a leukemia type.
+
+```{r}
+table(type2kclu)
+```
+
+### Visualizing kmeans cluster
+
+I found another function for visualizing kmeans results called fviz_cluster(). It is part of the factoextra package
+
+```{r}
+install.packages("factoextra")
+```
+
+```{r}
+
+library(factoextra)
+```
+
+```{r}
+
+fviz_cluster(kclu, t(mat))
+
+```
+
+Note - the above function includes geom_point and geom_text by default. This results in a cluttered plot.
+
+below I plotted just the geom_point part. It would be good to label the clusters with ALL, CML etc. I'll try to figure that out later.
+
+for more on the fviz_cluster() function see this link
+
+[fvis_cluster](https://www.rdocumentation.org/packages/factoextra/versions/1.0.7/topics/fviz_cluster)
+
+```{r}
+
+fviz_cluster(kclu, t(mat), geom="point")
+
+```
+
+#### k-medoids clustering algorithm
+
+Another related and maybe more robust algorithm is called "k-medoids" clustering (Reynolds, Richards, Iglesia, et al. 2006). The procedure is almost identical to k-means clustering with a couple of differences. In this case, centroids chosen are real data points in our case patients, and the metric we are trying to optimize in each iteration is based on the Manhattan distance to the centroid. In k-means this was based on the sum of squared distances, so Euclidean distance. Below we show how to use the k-medoids clustering function pam() from the cluster package.
+
+```{r}
+kmclu=cluster::pam(t(mat),k=5) #  cluster using k-medoids
+
+# make a data frame with Leukemia type and cluster id
+type2kmclu = data.frame(
+                    LeukemiaType =substr(colnames(mat),1,3),
+                    cluster=kmclu$cluster)
+
+table(type2kmclu)
+```
+
+To visualize this data we need to compress between patient distances to a 2-dimensional plot. There are many ways to do this, and we introduce these dimension-reduction methods including the one we will use later in this chapter. For now, we are going to use a method called "multi-dimensional scaling" and plot the patients in a 2D plot color coded by their cluster assignments shown in Figure 4.5. We will explain this method in more detail in the Multi-dimensional scaling section below.
+
+Note - the plotting below uses baseR plotting.
+
+```{r}
+# Calculate distances
+dists=dist(t(mat))
+
+# calculate MDS
+mds=cmdscale(dists)
+
+# plot the patients in the 2D space
+plot(mds,pch=19,col=rainbow(5)[kclu$cluster]) 
+
+#pch refers to the style of the dots.  it stands for "plotting character".  to see the available characters type ?pch in the console.
+
+# set the legend for cluster colors
+legend("bottomright",
+       legend=paste("clu",unique(kclu$cluster)),
+       fill=rainbow(5)[unique(kclu$cluster)],
+       border=NA,box.col=NA)
+
+```
+
+Let's see if fvis_cluster works in this case.
+
+```{r}
+
+fviz_cluster(kmclu, t(mat), geom = "point")
+```
+
+silhouette values are a measure of how well points are mapped to theri relative clusters. In R, we can calculate silhouette values using the cluster::silhouette() function. Below, we calculate the silhouette values for k-medoids clustering with the pam() function with k=5.
+
+```{r}
+
+library(cluster)
+set.seed(101)
+pamclu=cluster::pam(t(mat),k=5)
+plot(silhouette(pamclu),main=NULL)
+```
+
+Now, let us calculate the average silhouette value for different k values and compare. We will use sapply() function to get average silhouette values across k values between 2 and 7. Within sapply() there is an anonymous function that that does the clustering and calculates average silhouette values for each k. We also plot the average silhouette values for different values.
+
+```{r}
+
+Ks=sapply(2:7, function(i) summary(silhouette(pam(t(mat),k=i)))$avg.width)
+plot(2:7,Ks,xlab="k",ylab="av. silhouette",type="b",
+     pch=19)
+```
+
+sapply, like other apply functions, applies a particular function to elements of a vector or an object. Here the vector is the numbers 2-7 (2:7)
+
+the function is: summary(silhouette(pam(t(mat),k=i)))\$avg.width
+
+let's break it down.
+
+the actual clustering function is pam, the k-medoids function from above. Let's rerun that function with k = 5 as we did before, and run the silhouett function on that to get the various silhouette values for each point in each cluster.
+
+```{r}
+
+silhouette(pam(t(mat),k=5))
+
+```
+
+Let's run summary on that function to see what we get
+
+```{r}
+summary(silhouette(pam(t(mat),k=5)))
+```
+
+We can extract the avg.width with dollar sign notation.
+
+```{r}
+summary(silhouette(pam(t(mat),k=5)))$avg.width
+
+```
+
+now, using sapply we can run this function across k values from 2 to 7
+
+```{r}
+Ks=sapply(2:7, function(i) summary(silhouette(pam(t(mat),k=i)))$avg.width)
+```
+
+and we can look at the resulting Ks object. Which is simply the avg.width for each K value
+
+```{r}
+Ks
+```
+
+```{r}
+Ks %>% ggplot() + geom_point
+```
